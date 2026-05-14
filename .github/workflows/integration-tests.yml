@@ -17,7 +17,7 @@ jobs:
           check-latest: true
 
       - name: Install package
-        run: pip install .[test]
+        run: pip install .
        
       - name: Run integration tests if script exists
         run: |
