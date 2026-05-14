@@ -4,10 +4,21 @@ on:
   workflow_call:
 
 jobs:
-  lint:
+  format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: psf/black@stable
+      - uses: actions/checkout@v4
         with:
-            options: "--check --verbose --color"
+          ref: ${{ github.head_ref }}
+
+      - name: Run Black formatter
+        uses: psf/black@stable
+        with:
+          options: "--line-length 88"
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git diff --quiet && git diff --staged --quiet || (git commit -m "style: format code with black" && git push)
