@@ -1,0 +1,13 @@
+name: Basic Python Checks
+
+on:
+  workflow_call:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: psf/black@stable
+        with:
+            options: "--check --verbose --color"
