@@ -2,6 +2,12 @@ name: Lint with Black
 
 on:
   workflow_call:
+    inputs:
+      options:
+        description: "Options to pass to Black"
+        default: ""
+        required: false
+        type: string
 
 jobs:
   format:
@@ -14,7 +20,7 @@ jobs:
       - name: Run Black formatter
         uses: psf/black@stable
         with:
-          options: "--line-length 88"
+          options: "--line-length 88 ${{ inputs.options }}"
 
       - name: Commit changes
         run: |
