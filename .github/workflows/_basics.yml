@@ -4,8 +4,10 @@ on:
   workflow_call:
     inputs:
       black-options:
+        description: "Options to pass to the Black formatter"
         required: false
         type: string
+        default: ""
 
 jobs:
   call-another-reusable:
