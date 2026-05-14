@@ -18,6 +18,7 @@ jobs:
 
       - name: Install package
         run: |
+          ehco "Installing package for testing..."
           python --version
           python -m pip --version
           python -m pip install --upgrade pip
