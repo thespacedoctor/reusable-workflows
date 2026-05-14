@@ -1,0 +1,8 @@
+name: Reusable workflow
+
+on:
+  workflow_call:
+
+jobs:
+  call-another-reusable:
+    uses: thespacedoctor/reusable-workflows/.github/workflows/black.yml@main

@@ -1,4 +1,4 @@
-name: Basic Python Checks
+name: Lint with Black
 
 on:
   workflow_call:
