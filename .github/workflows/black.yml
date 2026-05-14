@@ -18,9 +18,6 @@ jobs:
           ref: ${{ github.head_ref }}
 
       - name: Run Black formatter
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.14"
         uses: psf/black@stable
         with:
           options: "--line-length 88 ${{ inputs.options }}"
