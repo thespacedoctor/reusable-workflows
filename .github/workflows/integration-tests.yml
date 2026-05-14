@@ -9,8 +9,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-      - uses: actions/setup-python@v6
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
         with:
           python-version-file: pyproject.toml
           architecture: x64
