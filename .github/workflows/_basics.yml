@@ -1,8 +1,14 @@
-name: Reusable workflow
+name: Basic Python Workflow
 
 on:
   workflow_call:
+    inputs:
+      black-options:
+        required: false
+        type: string
 
 jobs:
   call-another-reusable:
-    uses: thespacedoctor/reusable-workflows/.github/workflows/black.yml@main
+    uses: .github/workflows/black.yml@main
+    with:
+      options: "${{ inputs.black-options }}"
