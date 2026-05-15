@@ -15,9 +15,8 @@ jobs:
           python-version-file: pyproject.toml
           architecture: x64
 
-      - name: Install NICEINECINCIEN
+      - name: Installing package and dependencies
         run: |
-          ehco "Installing package for testing..."
           python --version
           python -m pip --version
           python -m pip install --upgrade pip
