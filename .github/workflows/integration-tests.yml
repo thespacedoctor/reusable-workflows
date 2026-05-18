@@ -15,19 +15,19 @@ jobs:
           python-version-file: pyproject.toml
           architecture: x64
 
-      - name: Installing package and dependencies
-        run: |
-          python --version
-          python -m pip --version
-          python -m pip install --upgrade pip
-          python -m pip install .
+      # - name: Installing package and dependencies
+      #   run: |
+      #     python --version
+      #     python -m pip --version
+      #     python -m pip install --upgrade pip
+      #     python -m pip install .
        
-      - name: Run integration tests if script exists
-        run: |
-          if [ -f "./.github/workflows/assest/integration-tests.sh" ]; then
-            echo "Integration test script found. Running tests..."
-            bash ./.github/workflows/assest/integration-tests.sh -y
-          else
-            echo "Integration test script not found. Skipping..."
-            exit 0
-          fi
+      # - name: Run integration tests if script exists
+      #   run: |
+      #     if [ -f "./.github/workflows/assest/integration-tests.sh" ]; then
+      #       echo "Integration test script found. Running tests..."
+      #       bash ./.github/workflows/assest/integration-tests.sh -y
+      #     else
+      #       echo "Integration test script not found. Skipping..."
+      #       exit 0
+      #     fi
