@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version-file: pyproject.toml
@@ -50,3 +51,19 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Get tag message
+        id: tag_message
+        run: |
+          TAG_MSG=$(git tag -l --format='%(contents)' ${{ github.ref_name }})
+          echo "message<<EOF" >> $GITHUB_OUTPUT
+          echo "$TAG_MSG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*  # attach the .whl and .tar.gz to the release
+          body: ${{ steps.tag_message.outputs.message }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
