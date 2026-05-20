@@ -6,7 +6,6 @@ on:
 jobs:
   build:
     name: Publish release to PyPI
-    if: github.event.workflow_run.name == 'Integration Tests' && github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Act Workaround # https://github.com/nektos/act/issues/973
