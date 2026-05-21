@@ -28,7 +28,7 @@ jobs:
        
       - name: Run integration tests if script exists
         run: |
-          if [ -f "./.github/workflows/assest/integration-tests.sh" ]; then
+          if [ -f "./.github/workflows/assets/integration-tests.sh" ]; then
             echo "Integration test script found. Running tests..."
             bash ./.github/workflows/assets/integration-tests.sh -y
           else
