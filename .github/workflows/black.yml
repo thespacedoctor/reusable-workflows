@@ -6,6 +6,7 @@ on:
 jobs:
   format:
     runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
     steps:
       - name: Act Workaround # https://github.com/nektos/act/issues/973
         if: ${{ env.ACT }}
