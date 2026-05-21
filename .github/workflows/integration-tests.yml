@@ -26,12 +26,19 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install .
        
-      - name: Run integration tests if script exists
+     - name: Check for integration test script
+        id: check_script
+        shell: bash
         run: |
           if [ -f "./.github/workflows/assets/integration-tests.sh" ]; then
-            echo "Integration test script found. Running tests..."
-            bash ./.github/workflows/assets/integration-tests.sh -y
+            echo "exists=true" >> "$GITHUB_OUTPUT"
           else
-            echo "Integration test script not found. Skipping..."
-            exit 0
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
+      
+      - name: Run integration tests
+        if: steps.check_script.outputs.exists == 'true'
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash ./.github/workflows/assets/integration-tests.sh -y
