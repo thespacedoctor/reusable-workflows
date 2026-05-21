@@ -32,4 +32,4 @@ jobs:
           git config --local user.name "thespacedoctor"
           git add -A
           git pull || true
-          git diff --quiet && git diff --staged --quiet || (git commit -m "style: format code with black" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "style: format code with black" && git push origin HEAD:${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}})
