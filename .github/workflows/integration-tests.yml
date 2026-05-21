@@ -13,7 +13,7 @@ jobs:
         run: curl -fsSL https://deb.nodesource.com/setup_22.x | bash && apt install -y nodejs
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 1
       - uses: actions/setup-python@v5
         with:
           python-version-file: pyproject.toml
@@ -30,7 +30,7 @@ jobs:
         run: |
           if [ -f "./.github/workflows/assest/integration-tests.sh" ]; then
             echo "Integration test script found. Running tests..."
-            bash ./.github/workflows/assest/integration-tests.sh -y
+            bash ./.github/workflows/assets/integration-tests.sh -y
           else
             echo "Integration test script not found. Skipping..."
             exit 0
