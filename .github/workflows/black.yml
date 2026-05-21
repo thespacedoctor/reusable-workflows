@@ -2,8 +2,6 @@ name: Lint with Black
 
 on:
   workflow_call:
-    tags-ignore:
-      - '**'
 
 jobs:
   format:
