@@ -12,7 +12,7 @@ jobs:
         run: curl -fsSL https://deb.nodesource.com/setup_22.x | bash && apt install -y nodejs
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.ref_name }}
       - uses: actions/setup-python@v5
         with:
           python-version-file: pyproject.toml
@@ -30,4 +30,4 @@ jobs:
           git config --local user.name "thespacedoctor"
           git add -A
           git pull || true
-          git diff --quiet && git diff --staged --quiet || (git commit -m "style: format code with black" && git push origin ${{ github.head_ref }})
+          git diff --quiet && git diff --staged --quiet || (git commit -m "style: format code with black" && git push origin HEAD:${{ github.ref_name }})
