@@ -24,7 +24,7 @@ jobs:
       - name: Run Black formatter
         uses: psf/black@stable
         with:
-          options: "--line-length 88 --fast"
+          options: "--line-length 120 --fast"
 
       - name: Commit changes
         run: |
