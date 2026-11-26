@@ -1,0 +1,110 @@
+name: Change scope
+
+# DECIDES WHETHER A CALLER'S TEST SUITE MUST RUN. OUTPUT `code` IS "false" WHEN EITHER
+#   1. THE CHANGE TOUCHES ONLY CHANGES.md, OR
+#   2. A PUSH TO A PULL REQUEST ONLY MOVED ITS BASE (A MERGE FROM, OR REBASE ONTO, THE BASE
+#      BRANCH THAT LEFT THE PULL REQUEST'S OWN CODE DIFF UNCHANGED) AND THE CALLER'S LAST RUN
+#      ON THE PREVIOUS HEAD PASSED.
+# RULE 2 ACCEPTS A RISK: THE PULL REQUEST'S CODE IS NOT RE-TESTED ON TOP OF THE NEW BASE.
+# ANY DOUBT (NO PREVIOUS HEAD, FAILED GIT OR API CALL, NO PASSING RUN) GIVES "true".
+#
+# THE PREVIOUS RUN IS LOOKED UP FOR THE CALLING WORKFLOW FILE, TAKEN FROM github.workflow_ref.
+# CALL IT FROM A JOB THAT GRANTS `contents: read` AND `actions: read`, AND GATE THE TEST JOB WITH
+#   if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.code != 'false') }}
+# A JOB SKIPPED BY `if` PASSES A REQUIRED CHECK; A WORKFLOW SKIPPED BY `paths-ignore` LEAVES IT PENDING.
+# THE GUARD SKIPS ONLY ON AN EXPLICIT "false", SO AN EMPTY OR MISSING OUTPUT RUNS THE SUITE.
+# THE SCRIPT IS TAKEN FROM main, LIKE THE CALLERS' `@main` REFERENCE TO THIS FILE.
+on:
+  workflow_call:
+    outputs:
+      code:
+        description: "\"true\" when the test suite must run"
+        value: ${{ jobs.decide.outputs.code }}
+
+permissions:
+  contents: read
+
+jobs:
+  decide:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      code: ${{ steps.decide.outputs.code }}
+    steps:
+      - name: Check out caller repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          fetch-depth: 0
+
+      - name: Check out decision script
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          repository: thespacedoctor/reusable-workflows
+          ref: main
+          path: .change-scope-tool
+          sparse-checkout: scripts
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: "3.12"
+
+      # THE CONCLUSION OF THE NEWEST RUN OF THE CALLING WORKFLOW ON THE PREVIOUS PULL REQUEST HEAD,
+      # FOR THIS SAME PULL REQUEST AND HEAD REPOSITORY. EMPTY WHEN THERE IS NONE OR THE API CALL
+      # FAILS, WHICH MAKES THE SUITE RUN
+      - name: Find previous run conclusion
+        id: prior
+        if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BEFORE: ${{ github.event.before }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          conclusion=""
+          # github.workflow_ref IS THE CALLER'S "<owner>/<repo>/<path>@<ref>", SO THE CALLER CANNOT
+          # POINT THE LOOKUP AT A DIFFERENT WORKFLOW
+          WORKFLOW_PATH="${WORKFLOW_REF#"$REPO"/}"
+          WORKFLOW_PATH="${WORKFLOW_PATH%%@*}"
+          echo "Calling workflow: ${WORKFLOW_PATH}"
+          if [[ "$BEFORE" =~ ^[0-9a-f]{40}$ ]]; then
+            set -o pipefail
+            conclusion="$(gh api "repos/$REPO/actions/runs?head_sha=$BEFORE&event=pull_request&per_page=100" \
+              | jq -r --arg p "$WORKFLOW_PATH" --arg repo "$HEAD_REPO" --argjson pr "$PR_NUMBER" \
+                '[.workflow_runs[]
+                  | select(.path == $p)
+                  | select(.head_repository.full_name == $repo)
+                  | select(any(.pull_requests[]?; .number == $pr))]
+                 | sort_by(.created_at) | last | .conclusion // ""')" \
+              || conclusion=""
+          fi
+          echo "Previous run conclusion: '${conclusion}'"
+          echo "conclusion=${conclusion}" >> "$GITHUB_OUTPUT"
+
+      - name: Decide
+        id: decide
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.pull_request.head.sha || github.event.after || github.sha }}
+          PRIOR: ${{ steps.prior.outputs.conclusion }}
+        run: |
+          python .change-scope-tool/scripts/ci_change_scope.py \
+            --event "$EVENT_NAME" \
+            --action "$EVENT_ACTION" \
+            --base-sha "$PR_BASE_SHA" \
+            --head-sha "$PR_HEAD_SHA" \
+            --before "$BEFORE" \
+            --after "$AFTER" \
+            --prior-conclusion "$PRIOR" \
+            --output "$GITHUB_OUTPUT" \
+            || echo "code=true" >> "$GITHUB_OUTPUT"
